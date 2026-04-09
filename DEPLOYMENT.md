@@ -3,8 +3,9 @@
 ## Local development
 
 1. Run `npm install` at the repository root.
-2. Start the backend with `npm run dev:server`.
-3. Start the frontend with `npm run dev:web`.
+2. Start both apps together with `npm run dev`.
+3. Or start the backend with `npm run dev:server`.
+4. Or start the frontend with `npm run dev:web`.
 
 The root dev scripts automatically build `@staging/shared` before launching the backend or frontend.
 
