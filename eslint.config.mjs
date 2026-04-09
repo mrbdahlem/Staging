@@ -10,7 +10,7 @@ export default tseslint.config(
   },
   js.configs.recommended,
   {
-    files: ["apps/**/*.{ts,tsx}", "packages/**/*.{ts,tsx}"],
+    files: ["apps/server/**/*.{ts,tsx}", "packages/**/*.{ts,tsx}"],
     extends: [...tseslint.configs.recommendedTypeChecked],
     languageOptions: {
       parserOptions: {
@@ -18,7 +18,28 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname
       },
       globals: {
-        ...globals.node,
+        ...globals.node
+      }
+    },
+    plugins: {
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+      "react-refresh/only-export-components": ["warn", { "allowConstantExport": true }]
+    }
+  },
+  {
+    files: ["apps/web/**/*.{ts,tsx}"],
+    extends: [...tseslint.configs.recommendedTypeChecked],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname
+      },
+      globals: {
         ...globals.browser
       }
     },

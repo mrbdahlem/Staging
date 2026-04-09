@@ -16,9 +16,9 @@ export function createApp(publicDir: string) {
 
   if (existsSync(publicDir)) {
     app.use(express.static(publicDir));
-    app.get("/api/{*path}", handleApiNotFoundRequest);
+    app.all("/api/*path", handleApiNotFoundRequest);
 
-    app.get("/{*path}", (_request, response) => {
+    app.get(["/", "/*path"], (_request, response) => {
       response.sendFile(join(publicDir, "index.html"));
     });
   } else {

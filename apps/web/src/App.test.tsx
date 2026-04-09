@@ -12,6 +12,8 @@ describe("App", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
         json: () => Promise.resolve({
           checkedAt: "2026-04-09T00:00:00.000Z",
           status: "ok"
@@ -25,6 +27,25 @@ describe("App", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("health-status")).toHaveTextContent("ok");
+    });
+  });
+
+  it("falls back to degraded when the health endpoint returns a non-ok response", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: () => Promise.resolve({
+          error: "Internal Server Error"
+        })
+      })
+    );
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("health-status")).toHaveTextContent("degraded");
     });
   });
 });

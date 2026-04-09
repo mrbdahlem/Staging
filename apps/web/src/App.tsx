@@ -7,6 +7,19 @@ const fallbackStatus: HealthStatus = {
   status: "unknown"
 };
 
+function isHealthStatus(value: unknown): value is HealthStatus {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+
+  return (
+    typeof candidate.checkedAt === "string" &&
+    (candidate.status === "degraded" || candidate.status === "ok" || candidate.status === "unknown")
+  );
+}
+
 export function App() {
   const [health, setHealth] = useState<HealthStatus>(fallbackStatus);
 
@@ -14,7 +27,19 @@ export function App() {
     let cancelled = false;
 
     void fetch("/api/health")
-      .then(async (response) => response.json() as Promise<HealthStatus>)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`Health request failed with status ${response.status}`);
+        }
+
+        const payload: unknown = await response.json();
+
+        if (!isHealthStatus(payload)) {
+          throw new Error("Health response payload was invalid");
+        }
+
+        return payload;
+      })
       .then((payload) => {
         if (!cancelled) {
           setHealth(payload);
