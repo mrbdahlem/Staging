@@ -4,6 +4,7 @@
 
 - Root `npm test` is the primary baseline gate and chains `lint`, `typecheck`, and workspace unit tests.
 - Browser-level verification lives under the repo-root `playwright/` directory and runs through `npm run test:e2e`.
+- The shared Playwright harness is explicitly Chromium-only so local `npm run test:e2e` matches the lighter-weight devcontainer browser install.
 - GitHub Actions should run both `npm test` and `npm run test:e2e` so browser coverage is verified outside sandboxed agent sessions.
 - CI runs inside a Playwright container image so browser binaries and Linux dependencies do not need to be downloaded during every workflow run.
 - The pinned Playwright CI image `mcr.microsoft.com/playwright:v1.59.1-jammy` currently provides Node 24.x, so workflow verification should match that image rather than assuming Node 22.
