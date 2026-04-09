@@ -10,6 +10,8 @@
   "scripts": {
     "build": "npm run build --workspace @staging/shared && npm run build --workspace @staging/web && npm run copy:web && npm run build --workspace @staging/server",
     "copy:web": "node ./scripts/copy-web-to-server.mjs",
+    "predev:server": "npm run build --workspace @staging/shared",
+    "predev:web": "npm run build --workspace @staging/shared",
     "dev:server": "npm run dev --workspace @staging/server",
     "dev:web": "npm run dev --workspace @staging/web",
     "lint": "eslint .",

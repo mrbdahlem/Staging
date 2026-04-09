@@ -6,6 +6,8 @@
 2. Start the backend with `npm run dev:server`.
 3. Start the frontend with `npm run dev:web`.
 
+The root dev scripts automatically build `@staging/shared` before launching the backend or frontend.
+
 ## Production-style local run
 
 1. Build the monorepo with `npm run build`.

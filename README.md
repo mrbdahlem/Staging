@@ -18,6 +18,8 @@ This is the Phase 1 baseline for the MVP plan in [.agent/plans/mvp.md](.agent/pl
 2. Start the backend with `npm run dev:server`
 3. Start the frontend with `npm run dev:web`
 
+The root dev scripts build `@staging/shared` first, so a fresh checkout does not require a separate manual shared-package build step.
+
 ## Build and run
 
 1. Build the shared package, frontend, and backend with `npm run build`
