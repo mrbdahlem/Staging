@@ -386,14 +386,14 @@ describe("database bootstrap", () => {
           status: "downloaded"
         });
 
-        expect(() =>
+        expect(() => {
           createArtifact(db, {
             artifactName: "learn-manual-import.jar",
             filename: "learn-manual-import-v2.jar",
             projectId: project!.id,
             status: "downloaded"
-          })
-        ).toThrow(/unique/i);
+          });
+        }).toThrow(/unique/i);
       } finally {
         db.close();
       }
@@ -421,14 +421,14 @@ describe("database bootstrap", () => {
         const secondProjectId = createProjectRow(db);
         const secondEnvironmentId = createEnvironmentRow(db, secondProjectId, storage);
 
-        expect(() =>
+        expect(() => {
           createDeployment(db, {
             environmentId: secondEnvironmentId,
             projectId: project!.id,
             status: "pending",
             type: "deploy"
-          })
-        ).toThrow(/project_id must match environment project_id/i);
+          });
+        }).toThrow(/project_id must match environment project_id/i);
       } finally {
         db.close();
       }
