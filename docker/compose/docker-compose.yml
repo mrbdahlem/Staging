@@ -1,0 +1,10 @@
+services:
+  staging:
+    image: node:22-bookworm
+    working_dir: /workspace
+    command: >
+      bash -lc "npm install && npm run build && npm run start"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../../:/workspace

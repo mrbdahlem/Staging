@@ -656,29 +656,29 @@ These should be decided as implementation details rather than delaying the proje
 # 20. Implementation plan
 
 - [ ] **Phase 1: project setup and skeleton**
-  - [ ] Create the monorepo with `apps/server`, `apps/web`, and `packages/shared`
-  - [ ] Set up TypeScript
-  - [ ] Set up Vite for frontend
-  - [ ] Set up Express backend
+  - [x] Create the monorepo with `apps/server`, `apps/web`, and `packages/shared`
+  - [x] Set up TypeScript
+  - [x] Set up Vite for frontend
+  - [x] Set up Express backend
   - [ ] Prepare testing systems and scripts
-    - [ ] Set up backend API testing (`vitest`, `supertest`, test SQLite db/filesystem)
-    - [ ] Set up frontend component testing (`vitest`, Testing Library)
-    - [ ] Set up e2e testing with Playwright
+    - [x] Set up backend API testing (`vitest`, `supertest`, test SQLite db/filesystem)
+    - [x] Set up frontend component testing (`vitest`, Testing Library)
+    - [x] Set up e2e testing with Playwright
     - [ ] Define test environment config and isolated Staging storage paths
       - [ ] Separate test SQLite DB
       - [ ] Temp directories for artifacts, active pointers, generated env files, and deployment logs
       - [ ] Mock or sandbox Docker/runtime commands (tests must never affect real containers)
-      - [ ] Ensure all file paths are configurable via env/config (no hardcoded `/opt/staging`)
+      - [x] Ensure all file paths are configurable via env/config (no hardcoded `/opt/staging`)
     - [ ] Create shared test utilities
       - [ ] Temp directory factory/cleanup
       - [ ] Seeded test DB helper
       - [ ] Fake artifact generator
       - [ ] Fake deployment runner/mocks
-    - [ ] Set up linting, formatting, and typechecking scripts
-  - [ ] Add shared types and schemas
-  - [ ] Copy frontend build output to backend public directory
-  - [ ] Add Docker Compose for local/dev deployment
-  - [ ] Deliverable: backend serves the frontend SPA and a basic health endpoint
+    - [x] Set up linting, formatting, and typechecking scripts
+  - [x] Add shared types and schemas
+  - [x] Copy frontend build output to backend public directory
+  - [x] Add Docker Compose for local/dev deployment
+  - [x] Deliverable: backend serves the frontend SPA and a basic health endpoint
 
 - [ ] **Phase 2: SQLite schema and persistence layer**
   - [ ] Implement SQLite with chosen library or ORM
