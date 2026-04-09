@@ -21,7 +21,14 @@ async function startServer() {
 
 startServer().catch((error: unknown) => {
   log("error", "Server failed to start", {
-    error: error instanceof Error ? error.message : "unknown"
+    error:
+      error instanceof Error
+        ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+          }
+        : "unknown"
   });
 
   process.exitCode = 1;

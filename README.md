@@ -29,6 +29,7 @@ On startup, the server also creates the configured storage directories and boots
 2. Start the built server with `npm run start`
 
 By default, runtime storage lives under `./storage`, with the SQLite database at `./storage/db/staging.sqlite`.
+These are local runtime artifacts created by the server and should not be committed to version control; the repository `.gitignore` excludes `storage/` when you use the default paths.
 You can override those paths with:
 
 - `STAGING_STORAGE_ROOT`

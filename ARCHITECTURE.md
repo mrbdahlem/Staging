@@ -15,7 +15,7 @@ Staging is a TypeScript monorepo with three workspaces:
 
 ## Current MVP baseline
 
-The repository currently implements the Phase 1 bootstrap only:
+The repository currently implements the Phase 1 bootstrap plus the Phase 2 persistence foundation:
 
 - a health endpoint at `/api/health`
 - a frontend shell that displays the backend health state

@@ -4,6 +4,7 @@ coverage/
 playwright-report/
 test-results/
 apps/server/public/
+storage/
 !.gitkeep
 .codex
 .DS_Store
