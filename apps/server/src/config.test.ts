@@ -1,8 +1,13 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { getServerConfig } from "./config.js";
+
+const sourceDir = fileURLToPath(new URL(".", import.meta.url));
+const projectRoot = resolve(sourceDir, "..");
+const repoRoot = resolve(projectRoot, "..", "..");
 
 describe("server config", () => {
   const originalEnv = { ...process.env };
@@ -22,10 +27,8 @@ describe("server config", () => {
 
     const config = getServerConfig();
 
-    expect(config.storage.rootDir).toBe(resolve(process.cwd(), "..", "..", "storage"));
-    expect(config.storage.dbPath).toBe(
-      resolve(process.cwd(), "..", "..", "storage", "db", "staging.sqlite")
-    );
+    expect(config.storage.rootDir).toBe(resolve(repoRoot, "storage"));
+    expect(config.storage.dbPath).toBe(resolve(repoRoot, "storage", "db", "staging.sqlite"));
     expect(config.health.defaultUrl).toBe("/api/health");
   });
 
@@ -68,7 +71,6 @@ describe("server config", () => {
     process.env.STAGING_IMPORTS_DIR = "runtime/imports";
 
     const config = getServerConfig();
-    const repoRoot = resolve(process.cwd(), "..", "..");
 
     expect(config.storage).toEqual({
       rootDir: resolve(repoRoot, "storage-alt"),

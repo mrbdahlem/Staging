@@ -9,3 +9,4 @@
 - The devcontainer now builds a small custom image on top of the standard Node devcontainer base so Playwright Chromium and its Linux dependencies are preinstalled, with browser binaries stored under `/ms-playwright` for the `node` remote user.
 - The server bootstraps its storage layout from env-configurable `STAGING_*` paths and seeds a default `learn` project with a `staging` environment into SQLite on startup.
 - The default `storage/` tree is runtime-generated local state and should stay gitignored to avoid accidental commits after starting the server.
+- Config-path tests should derive the repo root from the module URL like `getServerConfig()` does, not from `process.cwd()`, so they remain stable when Vitest runs from different working directories.
