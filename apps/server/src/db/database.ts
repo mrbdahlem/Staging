@@ -390,7 +390,7 @@ function runMigrations(db: SqliteDatabase) {
       continue;
     }
 
-    db.exec("BEGIN");
+    db.exec("BEGIN IMMEDIATE");
 
     try {
       db.exec(migration.sql);
@@ -501,6 +501,7 @@ function seedDefaults(db: SqliteDatabase, storage: StorageConfig, defaultHealthU
 export function openStagingDatabase(dbPath: string): SqliteDatabase {
   const db = new DatabaseSync(dbPath);
   db.exec("PRAGMA foreign_keys = ON;");
+  db.exec("PRAGMA busy_timeout = 5000;");
   return db;
 }
 

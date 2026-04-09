@@ -1,7 +1,11 @@
 import { createApp } from "./app.js";
 import { getServerConfig } from "./config.js";
 import { initializePersistence } from "./db/database.js";
-import { attachStartupServerErrorHandler, logStartupFailure } from "./startup.js";
+import {
+  attachStartupServerErrorHandler,
+  logStartupFailure,
+  terminateStartupProcess
+} from "./startup.js";
 import { log } from "./logger.js";
 
 async function startServer() {
@@ -27,4 +31,5 @@ async function startServer() {
 
 startServer().catch((error: unknown) => {
   logStartupFailure(error);
+  terminateStartupProcess();
 });

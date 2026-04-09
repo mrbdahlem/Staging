@@ -225,4 +225,29 @@ describe("database bootstrap", () => {
       await rm(storage.rootDir, { force: true, recursive: true });
     }
   });
+
+  it("configures SQLite to wait briefly when the database is locked", async () => {
+    const storage = await createTestStorage();
+
+    try {
+      await initializePersistence({
+        defaultHealthUrl: "/api/health",
+        storage
+      });
+
+      const db = openStagingDatabase(storage.dbPath);
+
+      try {
+        const row = db.prepare("PRAGMA busy_timeout;").get() as { timeout: number } | undefined;
+
+        expect(row).toEqual({
+          timeout: 5000
+        });
+      } finally {
+        db.close();
+      }
+    } finally {
+      await rm(storage.rootDir, { force: true, recursive: true });
+    }
+  });
 });

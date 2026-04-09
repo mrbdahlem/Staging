@@ -1,8 +1,13 @@
 import { EventEmitter } from "node:events";
 
-import { afterEach, vi } from "vitest";
+import { afterEach, beforeEach, vi } from "vitest";
 
-import { attachStartupServerErrorHandler, formatStartupError, logStartupFailure } from "./startup.js";
+import {
+  attachStartupServerErrorHandler,
+  formatStartupError,
+  logStartupFailure,
+  terminateStartupProcess
+} from "./startup.js";
 import { log } from "./logger.js";
 
 vi.mock("./logger.js", () => ({
@@ -10,11 +15,17 @@ vi.mock("./logger.js", () => ({
 }));
 
 describe("server startup", () => {
-  const originalExitCode = process.exitCode;
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    processExitSpy = vi
+      .spyOn(process, "exit")
+      .mockImplementation(((code?: string | number | null) => code as never) as typeof process.exit);
+  });
 
   afterEach(() => {
-    process.exitCode = originalExitCode;
-    vi.clearAllMocks();
+    processExitSpy.mockRestore();
+    vi.restoreAllMocks();
   });
 
   it("formats Error instances as structured log payloads", () => {
@@ -27,7 +38,7 @@ describe("server startup", () => {
     });
   });
 
-  it("logs startup failures and marks the process as failed", () => {
+  it("logs startup failures", () => {
     logStartupFailure(new Error("bind failed"));
 
     expect(log).toHaveBeenCalledWith("error", "Server failed to start", {
@@ -37,7 +48,13 @@ describe("server startup", () => {
         stack: expect.any(String)
       }
     });
-    expect(process.exitCode).toBe(1);
+    expect(processExitSpy).not.toHaveBeenCalled();
+  });
+
+  it("terminates the process with a failing exit code", () => {
+    terminateStartupProcess();
+
+    expect(processExitSpy).toHaveBeenCalledWith(1);
   });
 
   it("handles server error events from app.listen", () => {
@@ -54,6 +71,6 @@ describe("server startup", () => {
         stack: expect.any(String)
       }
     });
-    expect(process.exitCode).toBe(1);
+    expect(processExitSpy).toHaveBeenCalledWith(1);
   });
 });
