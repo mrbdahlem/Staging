@@ -609,164 +609,84 @@ These should be decided as implementation details rather than delaying the proje
 
 # 20. Implementation plan
 
-## Phase 1: project setup and skeleton
+- [ ] **Phase 1: project setup and skeleton**
+  - [ ] Create the monorepo with `apps/server`, `apps/web`, and `packages/shared`
+  - [ ] Set up TypeScript
+  - [ ] Set up Vite for frontend
+  - [ ] Set up Express backend
+  - [ ] Add shared types and schemas
+  - [ ] Copy frontend build output to backend public directory
+  - [ ] Add Docker Compose for local/dev deployment
+  - [ ] Deliverable: backend serves the frontend SPA and a basic health endpoint
 
-Create the monorepo with:
+- [ ] **Phase 2: SQLite schema and persistence layer**
+  - [ ] Implement SQLite with chosen library or ORM
+  - [ ] Create tables for artifacts, artifact tags, environments, environment variables, artifact overrides, and deployments
+  - [ ] Seed a default `staging` environment
+  - [ ] Deliverable: backend can create, read, and update artifact and deployment records
 
-* `apps/server`
-* `apps/web`
-* `packages/shared`
+- [ ] **Phase 3: GitHub ingest and artifact download**
+  - [ ] Implement `POST /api/github/build-complete`
+  - [ ] Implement HMAC signature validation
+  - [ ] Implement GitHub artifact lookup/download
+  - [ ] Implement local artifact storage
+  - [ ] Implement checksum calculation
+  - [ ] Implement metadata persistence
+  - [ ] Implement manual sync endpoint
+  - [ ] Deliverable: successful GitHub build notification results in a stored jar artifact visible in the database
 
-Set up:
+- [ ] **Phase 4: artifact UI**
+  - [ ] Build frontend pages for dashboard, artifact list, and artifact detail panel
+  - [ ] Add manual sync button
+  - [ ] Add artifact metadata table
+  - [ ] Add deploy button placeholder
+  - [ ] Deliverable: user can view imported artifacts in the UI
 
-* TypeScript
-* Vite for frontend
-* Express backend
-* shared types and schemas
-* frontend build output copied to backend public directory
-* Docker Compose for local/dev deployment
+- [ ] **Phase 5: config management**
+  - [ ] Implement environment default variable storage
+  - [ ] Implement artifact override storage
+  - [ ] Implement config resolution service
+  - [ ] Implement generated env snapshot creation
+  - [ ] Implement config hash generation
+  - [ ] Build frontend UI to manage environment defaults and artifact overrides
+  - [ ] Deliverable: a selected artifact can produce a resolved env snapshot file
 
-Deliverable:
+- [ ] **Phase 6: deployment orchestration**
+  - [ ] Implement deployment service to create deployment record
+  - [ ] Update symlink atomically
+  - [ ] Shell out to `docker compose`
+  - [ ] Restart Learn container
+  - [ ] Capture container id
+  - [ ] Poll health endpoint
+  - [ ] Persist final deployment status
+  - [ ] Deliverable: user can deploy an artifact from the UI to staging
 
-* backend serves the frontend SPA and a basic health endpoint
+- [ ] **Phase 7: rollback**
+  - [ ] Implement rollback using previous successful deployment’s artifact and env snapshot
+  - [ ] Add rollback button to deployment history UI
+  - [ ] Deliverable: user can roll back from the UI
 
-## Phase 2: SQLite schema and persistence layer
+- [ ] **Phase 8: deployment log reference**
+  - [ ] Implement per-deployment log file path creation and capture of relevant logs
+  - [ ] Persist `log_path` in deployment records
+  - [ ] Expose log metadata in the UI
+  - [ ] Deliverable: each deployment record points to a stable deployment log file
 
-Implement SQLite with chosen library or ORM. Create tables for:
+- [ ] **Phase 9: runtime status page**
+  - [ ] Implement runtime inspection page showing current artifact, current deployment, symlink target, container status, and health result
+  - [ ] Deliverable: runtime page gives a quick operator view of staging health and version
 
-* artifacts
-* artifact tags
-* environments
-* environment variables
-* artifact overrides
-* deployments
-
-Seed a default `staging` environment.
-
-Deliverable:
-
-* backend can create, read, and update artifact and deployment records
-
-## Phase 3: GitHub ingest and artifact download
-
-Implement:
-
-* `POST /api/github/build-complete`
-* HMAC signature validation
-* GitHub artifact lookup/download
-* local artifact storage
-* checksum calculation
-* metadata persistence
-
-Implement manual sync endpoint.
-
-Deliverable:
-
-* successful GitHub build notification results in a stored jar artifact visible in the database
-
-## Phase 4: artifact UI
-
-Build frontend pages for:
-
-* dashboard
-* artifact list
-* artifact detail panel
-
-Include:
-
-* manual sync button
-* artifact metadata table
-* deploy button placeholder
-
-Deliverable:
-
-* user can view imported artifacts in the UI
-
-## Phase 5: config management
-
-Implement:
-
-* environment default variable storage
-* artifact override storage
-* config resolution service
-* generated env snapshot creation
-* config hash generation
-
-Build frontend UI to manage environment defaults and artifact overrides.
-
-Deliverable:
-
-* a selected artifact can produce a resolved env snapshot file
-
-## Phase 6: deployment orchestration
-
-Implement deployment service:
-
-* create deployment record
-* update symlink atomically
-* shell out to `docker compose`
-* restart Learn container
-* capture container id
-* poll health endpoint
-* persist final deployment status
-
-Deliverable:
-
-* user can deploy an artifact from the UI to staging
-
-## Phase 7: rollback
-
-Implement rollback using previous successful deployment’s artifact and env snapshot.
-
-Add rollback button to deployment history UI.
-
-Deliverable:
-
-* user can roll back from the UI
-
-## Phase 8: deployment log reference
-
-Implement per-deployment log file path creation and capture of relevant logs.
-
-Persist `log_path` in deployment records.
-
-Expose log metadata in the UI.
-
-Deliverable:
-
-* each deployment record points to a stable deployment log file
-
-## Phase 9: runtime status page
-
-Implement runtime inspection page showing:
-
-* current artifact
-* current deployment
-* symlink target
-* container status
-* health result
-
-Deliverable:
-
-* runtime page gives a quick operator view of staging health and version
-
-## Phase 10: polish and hardening
-
-Add:
-
-* safer delete behavior for artifacts
-* artifact tags and notes
-* secret masking in UI
-* better error handling
-* timeouts and retries for health checks
-* deployment-state UI polish
-* logging around backend operations
-* permission and filesystem checks
-* documentation
-
-Deliverable:
-
-* usable v1 release
+- [ ] **Phase 10: polish and hardening**
+  - [ ] Add safer delete behavior for artifacts
+  - [ ] Add artifact tags and notes
+  - [ ] Add secret masking in UI
+  - [ ] Improve error handling
+  - [ ] Add timeouts and retries for health checks
+  - [ ] Polish deployment-state UI
+  - [ ] Add logging around backend operations
+  - [ ] Add permission and filesystem checks
+  - [ ] Add documentation
+  - [ ] Deliverable: usable v1 release
 
 ---
 
@@ -774,19 +694,19 @@ Deliverable:
 
 The system is considered v1-ready when it can do the following:
 
-* serve a React SPA from the backend
-* ingest signed GitHub build notifications
-* download jar artifacts from GitHub
-* store artifact metadata in SQLite
-* show artifacts in the UI
-* manage environment defaults
-* manage artifact-specific overrides
-* generate immutable env snapshots per deployment
-* deploy a selected artifact to a Dockerized Learn staging container
-* health-check the deployment
-* store deployment history
-* roll back to a previous successful deployment using artifact plus config snapshot
-* associate each deployment with a log reference
+- [ ] serve a React SPA from the backend
+- [ ] ingest signed GitHub build notifications
+- [ ] download jar artifacts from GitHub
+- [ ] store artifact metadata in SQLite
+- [ ] show artifacts in the UI
+- [ ] manage environment defaults
+- [ ] manage artifact-specific overrides
+- [ ] generate immutable env snapshots per deployment
+- [ ] deploy a selected artifact to a Dockerized Learn staging container
+- [ ] health-check the deployment
+- [ ] store deployment history
+- [ ] roll back to a previous successful deployment using artifact plus config snapshot
+- [ ] associate each deployment with a log reference
 
 ---
 
@@ -794,16 +714,16 @@ The system is considered v1-ready when it can do the following:
 
 If you want the smoothest start, build in this exact order:
 
-1. monorepo skeleton
-2. SQLite schema
-3. artifact ingest endpoint
-4. manual sync
-5. artifact list UI
-6. config resolution and env snapshot generation
-7. deploy service
-8. rollback
-9. deployment logs
-10. runtime page
+- [ ] monorepo skeleton
+- [ ] SQLite schema
+- [ ] artifact ingest endpoint
+- [ ] manual sync
+- [ ] artifact list UI
+- [ ] config resolution and env snapshot generation
+- [ ] deploy service
+- [ ] rollback
+- [ ] deployment logs
+- [ ] runtime page
 
 That order gets you to something useful quickly while keeping the hard parts isolated.
 
