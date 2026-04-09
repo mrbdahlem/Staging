@@ -1,0 +1,8 @@
+# Repo Discoveries
+
+## 2026-04-09
+
+- The repository started as a near-empty scaffold with only planning docs and devcontainer configuration.
+- Phase 1 bootstrap uses npm workspaces with `apps/server`, `apps/web`, and `packages/shared`.
+- The frontend baseline uses Tailwind CSS v4 through the Vite plugin rather than a separate PostCSS setup.
+- The root build flow compiles the web app, copies it into `apps/server/public`, and then builds the server.

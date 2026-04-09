@@ -1,0 +1,51 @@
+{
+  "name": "staging",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@10.9.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @staging/shared && npm run build --workspace @staging/web && npm run copy:web && npm run build --workspace @staging/server",
+    "copy:web": "node ./scripts/copy-web-to-server.mjs",
+    "predev": "npm run build --workspace @staging/shared",
+    "predev:server": "npm run build --workspace @staging/shared",
+    "predev:web": "npm run build --workspace @staging/shared",
+    "dev": "concurrently -n server,web -c blue,green \"npm run dev:server\" \"npm run dev:web\"",
+    "dev:server": "npm run dev --workspace @staging/server",
+    "dev:web": "npm run dev --workspace @staging/web",
+    "lint": "eslint .",
+    "start": "npm run start --workspace @staging/server",
+    "test": "npm run lint && npm run typecheck && npm run test:unit",
+    "test:e2e": "playwright test",
+    "test:unit": "npm run test --workspace @staging/shared && npm run test --workspace @staging/server && npm run test --workspace @staging/web",
+    "typecheck": "npm run typecheck --workspace @staging/shared && npm run typecheck --workspace @staging/server && npm run typecheck --workspace @staging/web && npm run typecheck:e2e",
+    "typecheck:e2e": "tsc -p tsconfig.playwright.json --pretty false"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.24.0",
+    "@playwright/test": "^1.54.2",
+    "@tailwindcss/vite": "^4.1.4",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^22.14.1",
+    "@typescript-eslint/eslint-plugin": "^8.29.0",
+    "@typescript-eslint/parser": "^8.29.0",
+    "@vitejs/plugin-react": "^4.4.1",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.24.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^16.0.0",
+    "jsdom": "^26.0.0",
+    "tsx": "^4.19.3",
+    "tailwindcss": "^4.1.4",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.29.0",
+    "vite": "^6.3.2",
+    "vitest": "^3.1.1"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@staging/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --build && vite build",
+    "dev": "vite",
+    "test": "vitest run",
+    "typecheck": "tsc --build --pretty false"
+  },
+  "dependencies": {
+    "@staging/shared": "*",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.1",
+    "@types/react-dom": "^19.1.2"
+  }
+}
