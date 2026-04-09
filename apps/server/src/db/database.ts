@@ -261,6 +261,40 @@ const migrations = [
         updated_at TEXT NOT NULL
       );
     `
+  },
+  {
+    id: "002_data_integrity_constraints",
+    sql: `
+      CREATE UNIQUE INDEX IF NOT EXISTS artifacts_project_null_workflow_run_artifact_name_unique
+      ON artifacts (project_id, artifact_name)
+      WHERE workflow_run_id IS NULL;
+
+      CREATE TRIGGER IF NOT EXISTS deployments_project_matches_environment_insert
+      BEFORE INSERT ON deployments
+      FOR EACH ROW
+      WHEN NOT EXISTS (
+        SELECT 1
+        FROM environments
+        WHERE id = NEW.environment_id
+          AND project_id = NEW.project_id
+      )
+      BEGIN
+        SELECT RAISE(ABORT, 'Deployment project_id must match environment project_id');
+      END;
+
+      CREATE TRIGGER IF NOT EXISTS deployments_project_matches_environment_update
+      BEFORE UPDATE OF project_id, environment_id ON deployments
+      FOR EACH ROW
+      WHEN NOT EXISTS (
+        SELECT 1
+        FROM environments
+        WHERE id = NEW.environment_id
+          AND project_id = NEW.project_id
+      )
+      BEGIN
+        SELECT RAISE(ABORT, 'Deployment project_id must match environment project_id');
+      END;
+    `
   }
 ] as const;
 

@@ -31,6 +31,79 @@ async function createTestStorage(): Promise<StorageConfig> {
   };
 }
 
+function createProjectRow(db: ReturnType<typeof openStagingDatabase>) {
+  const now = new Date().toISOString();
+  const result = db.prepare(
+    `
+      INSERT INTO projects (
+        key,
+        name,
+        description,
+        runtime_type,
+        artifact_kind,
+        deploy_driver,
+        active,
+        created_at,
+        updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `
+  ).run(
+    "docs",
+    "Docs",
+    "Secondary project for integrity tests.",
+    "node",
+    "tarball",
+    "compose-mounted-artifact",
+    1,
+    now,
+    now
+  );
+
+  return Number(result.lastInsertRowid);
+}
+
+function createEnvironmentRow(
+  db: ReturnType<typeof openStagingDatabase>,
+  projectId: number,
+  storage: StorageConfig
+) {
+  const result = db.prepare(
+    `
+      INSERT INTO environments (
+        project_id,
+        key,
+        name,
+        description,
+        container_name,
+        docker_compose_file,
+        docker_compose_project,
+        deploy_pointer_path,
+        generated_env_dir,
+        health_url,
+        logs_path,
+        active_artifact_id,
+        active_deployment_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `
+  ).run(
+    projectId,
+    "preview",
+    "Preview",
+    "Secondary environment for integrity tests.",
+    "docs-preview",
+    "docker/compose/docker-compose.yml",
+    "docs",
+    null,
+    join(storage.rootDir, "config", "docs-generated"),
+    "/api/health",
+    join(storage.rootDir, "logs", "docs-deployments"),
+    null,
+    null
+  );
+
+  return Number(result.lastInsertRowid);
+}
+
 describe("database bootstrap", () => {
   it("creates storage directories and seeds the default project and environment", async () => {
     const storage = await createTestStorage();
@@ -282,6 +355,80 @@ describe("database bootstrap", () => {
         expect(row).toEqual({
           timeout: 5000
         });
+      } finally {
+        db.close();
+      }
+    } finally {
+      await rm(storage.rootDir, { force: true, recursive: true });
+    }
+  });
+
+  it("rejects duplicate artifact names when workflow_run_id is null", async () => {
+    const storage = await createTestStorage();
+
+    try {
+      await initializePersistence({
+        defaultHealthUrl: "/api/health",
+        storage
+      });
+
+      const db = openStagingDatabase(storage.dbPath);
+
+      try {
+        const [project] = listProjects(db);
+
+        expect(project).toBeDefined();
+
+        createArtifact(db, {
+          artifactName: "learn-manual-import.jar",
+          filename: "learn-manual-import.jar",
+          projectId: project!.id,
+          status: "downloaded"
+        });
+
+        expect(() =>
+          createArtifact(db, {
+            artifactName: "learn-manual-import.jar",
+            filename: "learn-manual-import-v2.jar",
+            projectId: project!.id,
+            status: "downloaded"
+          })
+        ).toThrow(/unique/i);
+      } finally {
+        db.close();
+      }
+    } finally {
+      await rm(storage.rootDir, { force: true, recursive: true });
+    }
+  });
+
+  it("rejects deployments whose project does not match the environment project", async () => {
+    const storage = await createTestStorage();
+
+    try {
+      await initializePersistence({
+        defaultHealthUrl: "/api/health",
+        storage
+      });
+
+      const db = openStagingDatabase(storage.dbPath);
+
+      try {
+        const [project] = listProjects(db);
+
+        expect(project).toBeDefined();
+
+        const secondProjectId = createProjectRow(db);
+        const secondEnvironmentId = createEnvironmentRow(db, secondProjectId, storage);
+
+        expect(() =>
+          createDeployment(db, {
+            environmentId: secondEnvironmentId,
+            projectId: project!.id,
+            status: "pending",
+            type: "deploy"
+          })
+        ).toThrow(/project_id must match environment project_id/i);
       } finally {
         db.close();
       }
