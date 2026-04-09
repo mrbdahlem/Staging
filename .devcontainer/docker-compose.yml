@@ -1,6 +1,8 @@
 services:
   app:
-    image: mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
     volumes:
       - ..:/workspaces/Staging:cached
     cap_add:

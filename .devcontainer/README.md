@@ -7,7 +7,12 @@ and an Express backend.
 
 The devcontainer runs via Docker Compose with a single service:
 
-- `app` using `mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm`
+- `app` built from `.devcontainer/Dockerfile`
+
+The custom image extends the standard Node devcontainer base and preinstalls
+Playwright Chromium plus its Linux system dependencies, so local browser tests
+do not require a separate manual `npx playwright install` or
+`npx playwright install-deps`.
 
 ## Why the build was failing
 
@@ -16,9 +21,9 @@ The previous setup was copied from a Java-oriented devcontainer and included the
 an existing Yarn APT source whose signing key was missing, which caused the
 build to fail before the workspace even opened.
 
-This version removes the Java-specific setup and uses the standard Node dev
-container image directly, which is a better fit for Vite/Express work and avoids
-that feature-install path.
+This version keeps the standard Node devcontainer base, but layers a small
+custom image on top so the Playwright runtime dependencies are available from
+the start without extra manual host setup.
 
 ## First run
 
@@ -32,6 +37,8 @@ npm --version
 
 4. If a `package.json` exists at the repo root, dependencies will install during
 `postCreateCommand`. Otherwise the setup scripts will skip install cleanly.
+5. If you change `.devcontainer/Dockerfile`, rebuild the devcontainer so the
+browser dependencies are refreshed in the image.
 
 ## Common app ports
 
