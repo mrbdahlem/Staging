@@ -21,21 +21,39 @@ interface PersistenceConfig {
   storage: StorageConfig;
 }
 
-type SeedEnvironmentValues = [
-  number,
-  string,
-  string,
-  string,
-  string,
-  string,
-  string,
-  null,
-  string,
-  string,
-  string,
-  null,
-  null
-];
+interface SeedEnvironmentValues {
+  projectId: number;
+  key: string;
+  name: string;
+  description: string;
+  containerName: string;
+  dockerComposeFile: string;
+  dockerComposeProject: string;
+  deployPointerPath: null;
+  generatedEnvDir: string;
+  healthUrl: string;
+  logsPath: string;
+  activeArtifactId: null;
+  activeDeploymentId: null;
+}
+
+function seedEnvironmentValuesToSqliteValues(values: SeedEnvironmentValues): SqliteValue[] {
+  return [
+    values.projectId,
+    values.key,
+    values.name,
+    values.description,
+    values.containerName,
+    values.dockerComposeFile,
+    values.dockerComposeProject,
+    values.deployPointerPath,
+    values.generatedEnvDir,
+    values.healthUrl,
+    values.logsPath,
+    values.activeArtifactId,
+    values.activeDeploymentId
+  ];
+}
 
 interface ArtifactRow {
   id: number;
@@ -484,21 +502,21 @@ function seedDefaults(db: SqliteDatabase, storage: StorageConfig, defaultHealthU
   );
 
   if (!stagingEnvironment) {
-    const environmentValues: SeedEnvironmentValues = [
+    const environmentValues: SeedEnvironmentValues = {
       projectId,
-      "staging",
-      "Staging",
-      "Default staging environment for Learn.",
-      "learn-staging",
-      "docker/compose/docker-compose.yml",
-      "staging",
-      null,
-      storage.generatedConfigDir,
-      defaultHealthUrl,
-      storage.deploymentLogsDir,
-      null,
-      null
-    ];
+      key: "staging",
+      name: "Staging",
+      description: "Default staging environment for Learn.",
+      containerName: "learn-staging",
+      dockerComposeFile: "docker/compose/docker-compose.yml",
+      dockerComposeProject: "staging",
+      deployPointerPath: null,
+      generatedEnvDir: storage.generatedConfigDir,
+      healthUrl: defaultHealthUrl,
+      logsPath: storage.deploymentLogsDir,
+      activeArtifactId: null,
+      activeDeploymentId: null
+    };
 
     executeStatement(
       db,
@@ -519,7 +537,7 @@ function seedDefaults(db: SqliteDatabase, storage: StorageConfig, defaultHealthU
           active_deployment_id
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
-      environmentValues
+      seedEnvironmentValuesToSqliteValues(environmentValues)
     );
 
     return;
