@@ -21,6 +21,7 @@ This now covers the Phase 1 bootstrap plus the Phase 2 persistence foundation fr
 4. Or start the frontend with `npm run dev:web`
 
 The root dev scripts build `@staging/shared` first, so a fresh checkout does not require a separate manual shared-package build step.
+Use Node 24.x for local development and production-style runs; the Phase 2 persistence layer depends on the built-in `node:sqlite` module available in the project's validated runtime.
 On startup, the server also creates the configured storage directories and bootstraps the SQLite schema.
 
 ## Build and run

@@ -54,4 +54,28 @@ describe("server config", () => {
 
     rmSync(tempRoot, { force: true, recursive: true });
   });
+
+  it("normalizes relative storage overrides against the repository root", () => {
+    process.env.STAGING_STORAGE_ROOT = "storage-alt";
+    process.env.STAGING_DB_PATH = "custom/db.sqlite";
+    process.env.STAGING_ARTIFACTS_DIR = "runtime/artifacts";
+    process.env.STAGING_CURRENT_DIR = "runtime/current";
+    process.env.STAGING_GENERATED_CONFIG_DIR = "runtime/generated";
+    process.env.STAGING_DEPLOYMENT_LOGS_DIR = "runtime/logs";
+    process.env.STAGING_IMPORTS_DIR = "runtime/imports";
+
+    const config = getServerConfig();
+    const repoRoot = resolve(process.cwd(), "..", "..");
+
+    expect(config.storage).toEqual({
+      rootDir: resolve(repoRoot, "storage-alt"),
+      artifactsDir: resolve(repoRoot, "runtime", "artifacts"),
+      currentDir: resolve(repoRoot, "runtime", "current"),
+      generatedConfigDir: resolve(repoRoot, "runtime", "generated"),
+      deploymentLogsDir: resolve(repoRoot, "runtime", "logs"),
+      importsDir: resolve(repoRoot, "runtime", "imports"),
+      dbPath: resolve(repoRoot, "custom", "db.sqlite"),
+      dbDir: resolve(repoRoot, "custom")
+    });
+  });
 });

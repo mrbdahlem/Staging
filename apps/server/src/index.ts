@@ -1,6 +1,7 @@
 import { createApp } from "./app.js";
 import { getServerConfig } from "./config.js";
 import { initializePersistence } from "./db/database.js";
+import { attachStartupServerErrorHandler, logStartupFailure } from "./startup.js";
 import { log } from "./logger.js";
 
 async function startServer() {
@@ -10,26 +11,17 @@ async function startServer() {
 
   const app = createApp(config.publicDir);
 
-  app.listen(config.port, config.host, () => {
+  const server = app.listen(config.port, config.host, () => {
     log("info", "Server started", {
       host: config.host,
       port: config.port,
       storageRoot: config.storage.rootDir
     });
   });
+
+  attachStartupServerErrorHandler(server);
 }
 
 startServer().catch((error: unknown) => {
-  log("error", "Server failed to start", {
-    error:
-      error instanceof Error
-        ? {
-            name: error.name,
-            message: error.message,
-            stack: error.stack
-          }
-        : "unknown"
-  });
-
-  process.exitCode = 1;
+  logStartupFailure(error);
 });
