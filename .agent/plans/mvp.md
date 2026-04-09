@@ -660,6 +660,12 @@ These should be decided as implementation details rather than delaying the proje
   - [ ] Set up TypeScript
   - [ ] Set up Vite for frontend
   - [ ] Set up Express backend
+  - [ ] Prepare testing systems and scripts
+    - [ ] Set up backend API testing (`vitest`, `supertest`, test SQLite db/filesystem)
+    - [ ] Set up frontend component testing (`vitest`, Testing Library)
+    - [ ] Set up e2e testing with Playwright
+    - [ ] Define test environment config and isolated test storage paths
+    - [ ] Set up linting, formatting, and typechecking scripts
   - [ ] Add shared types and schemas
   - [ ] Copy frontend build output to backend public directory
   - [ ] Add Docker Compose for local/dev deployment
