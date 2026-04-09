@@ -9,7 +9,7 @@ export function formatStartupError(error: unknown) {
         message: error.message,
         stack: error.stack
       }
-    : "unknown";
+    : String(error);
 }
 
 export function logStartupFailure(error: unknown) {

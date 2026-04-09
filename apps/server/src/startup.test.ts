@@ -38,6 +38,11 @@ describe("server startup", () => {
     });
   });
 
+  it("formats non-Error startup failures as strings", () => {
+    expect(formatStartupError("boom")).toBe("boom");
+    expect(formatStartupError({ boom: true })).toBe("[object Object]");
+  });
+
   it("logs startup failures", () => {
     logStartupFailure(new Error("bind failed"));
 

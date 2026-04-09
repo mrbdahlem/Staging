@@ -226,6 +226,45 @@ describe("database bootstrap", () => {
     }
   });
 
+  it("updates seeded environment paths when the configured storage layout changes", async () => {
+    const storage = await createTestStorage();
+    const nextGeneratedConfigDir = join(storage.rootDir, "config", "alternate-generated");
+    const nextDeploymentLogsDir = join(storage.rootDir, "logs", "alternate-deployments");
+
+    try {
+      await initializePersistence({
+        defaultHealthUrl: "/api/health",
+        storage
+      });
+
+      await initializePersistence({
+        defaultHealthUrl: "/api/health",
+        storage: {
+          ...storage,
+          generatedConfigDir: nextGeneratedConfigDir,
+          deploymentLogsDir: nextDeploymentLogsDir
+        }
+      });
+
+      const db = openStagingDatabase(storage.dbPath);
+
+      try {
+        const [environment] = listEnvironments(db);
+
+        expect(environment).toEqual(
+          expect.objectContaining({
+            generatedEnvDir: nextGeneratedConfigDir,
+            logsPath: nextDeploymentLogsDir
+          })
+        );
+      } finally {
+        db.close();
+      }
+    } finally {
+      await rm(storage.rootDir, { force: true, recursive: true });
+    }
+  });
+
   it("configures SQLite to wait briefly when the database is locked", async () => {
     const storage = await createTestStorage();
 

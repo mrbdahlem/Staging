@@ -493,8 +493,13 @@ function seedDefaults(db: SqliteDatabase, storage: StorageConfig, defaultHealthU
 
   executeStatement(
     db,
-    "UPDATE environments SET health_url = ? WHERE id = ?",
-    [defaultHealthUrl, stagingEnvironment.id]
+    "UPDATE environments SET generated_env_dir = ?, health_url = ?, logs_path = ? WHERE id = ?",
+    [
+      storage.generatedConfigDir,
+      defaultHealthUrl,
+      storage.deploymentLogsDir,
+      stagingEnvironment.id
+    ]
   );
 }
 
