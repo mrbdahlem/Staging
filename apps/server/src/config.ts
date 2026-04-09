@@ -14,6 +14,18 @@ export interface StorageConfig {
   dbDir: string;
 }
 
+export interface HealthConfig {
+  defaultUrl: string;
+}
+
+export interface ServerConfig {
+  host: string;
+  port: number;
+  publicDir: string;
+  storage: StorageConfig;
+  health: HealthConfig;
+}
+
 function resolveStoragePath(repoRoot: string, pathValue: string): string {
   return isAbsolute(pathValue) ? pathValue : resolve(repoRoot, pathValue);
 }
@@ -50,7 +62,7 @@ function getStorageConfig(repoRoot: string): StorageConfig {
   };
 }
 
-export function getServerConfig() {
+export function getServerConfig(): ServerConfig {
   const projectRoot = resolve(sourceDir, "..");
   const repoRoot = resolve(projectRoot, "..", "..");
   const parsedPort = Number.parseInt(process.env.PORT ?? "3000", 10);
@@ -60,6 +72,9 @@ export function getServerConfig() {
     host: process.env.HOST ?? "0.0.0.0",
     port,
     publicDir: resolve(projectRoot, "public"),
-    storage: getStorageConfig(repoRoot)
+    storage: getStorageConfig(repoRoot),
+    health: {
+      defaultUrl: process.env.STAGING_DEFAULT_HEALTH_URL ?? "/api/health"
+    }
   };
 }

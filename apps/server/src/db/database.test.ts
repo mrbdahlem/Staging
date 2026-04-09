@@ -36,7 +36,10 @@ describe("database bootstrap", () => {
     const storage = await createTestStorage();
 
     try {
-      await initializePersistence(storage);
+      await initializePersistence({
+        defaultHealthUrl: "/api/health",
+        storage
+      });
 
       const db = openStagingDatabase(storage.dbPath);
 
@@ -61,6 +64,7 @@ describe("database bootstrap", () => {
             dockerComposeFile: "docker/compose/docker-compose.yml",
             dockerComposeProject: "staging",
             generatedEnvDir: storage.generatedConfigDir,
+            healthUrl: "/api/health",
             key: "staging",
             logsPath: storage.deploymentLogsDir,
             name: "Staging",
@@ -79,7 +83,10 @@ describe("database bootstrap", () => {
     const storage = await createTestStorage();
 
     try {
-      await initializePersistence(storage);
+      await initializePersistence({
+        defaultHealthUrl: "/api/health",
+        storage
+      });
 
       const db = openStagingDatabase(storage.dbPath);
 
@@ -150,6 +157,33 @@ describe("database bootstrap", () => {
             id: deployment.id,
             healthStatus: "ok",
             status: "success"
+          })
+        );
+      } finally {
+        db.close();
+      }
+    } finally {
+      await rm(storage.rootDir, { force: true, recursive: true });
+    }
+  });
+
+  it("uses the configured seeded health URL", async () => {
+    const storage = await createTestStorage();
+
+    try {
+      await initializePersistence({
+        defaultHealthUrl: "/healthz",
+        storage
+      });
+
+      const db = openStagingDatabase(storage.dbPath);
+
+      try {
+        const [environment] = listEnvironments(db);
+
+        expect(environment).toEqual(
+          expect.objectContaining({
+            healthUrl: "/healthz"
           })
         );
       } finally {

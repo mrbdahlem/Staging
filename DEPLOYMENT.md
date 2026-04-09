@@ -10,6 +10,7 @@
 The root dev scripts automatically build `@staging/shared` before launching the backend or frontend.
 Use Node 24.x for local development and deployment targets so the built-in `node:sqlite` module required by the server is available.
 The backend also bootstraps local storage and the SQLite schema on startup.
+The seeded default environment stores `/api/health` as its health URL unless `STAGING_DEFAULT_HEALTH_URL` overrides it.
 
 Default storage paths:
 
@@ -21,6 +22,7 @@ Default storage paths:
 - `storage/imports/`
 
 All of those can be overridden with `STAGING_*` storage environment variables when you need isolated paths for tests or alternate runtimes.
+The seeded environment health URL can also be overridden with `STAGING_DEFAULT_HEALTH_URL`.
 
 ## Production-style local run
 

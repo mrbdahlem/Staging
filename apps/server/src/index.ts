@@ -7,7 +7,10 @@ import { log } from "./logger.js";
 async function startServer() {
   const config = getServerConfig();
 
-  await initializePersistence(config.storage);
+  await initializePersistence({
+    defaultHealthUrl: config.health.defaultUrl,
+    storage: config.storage
+  });
 
   const app = createApp(config.publicDir);
 

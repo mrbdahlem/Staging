@@ -681,7 +681,7 @@ These should be decided as implementation details rather than delaying the proje
   - [x] Add Docker Compose for local/dev deployment
   - [x] Deliverable: backend serves the frontend SPA and a basic health endpoint
 
-- [ ] **Phase 2: SQLite schema and persistence layer**
+- [x] **Phase 2: SQLite schema and persistence layer**
   - [x] Implement SQLite with chosen library or ORM
   - [x] Create tables for projects, artifacts, artifact tags, environments, environment variables, `artifact_env_overrides`, and deployments
   - [x] Apply uniqueness constraints: `projects.key`, `(project_id, key)` on environments, `(project_id, workflow_run_id, artifact_name)` on artifacts

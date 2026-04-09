@@ -16,6 +16,27 @@ type SqliteValue = number | string | null;
 
 type SqliteDatabase = DatabaseSync;
 
+interface PersistenceConfig {
+  defaultHealthUrl: string;
+  storage: StorageConfig;
+}
+
+type SeedEnvironmentValues = [
+  number,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  null,
+  string,
+  string,
+  string,
+  null,
+  null
+];
+
 interface ArtifactRow {
   id: number;
   project_id: number;
@@ -386,7 +407,7 @@ function runMigrations(db: SqliteDatabase) {
   }
 }
 
-function seedDefaults(db: SqliteDatabase, storage: StorageConfig) {
+function seedDefaults(db: SqliteDatabase, storage: StorageConfig, defaultHealthUrl: string) {
   const now = new Date().toISOString();
   const learnProject = getStatement<{ id: number }>(db, "SELECT id FROM projects WHERE key = ?", ["learn"]);
 
@@ -429,6 +450,22 @@ function seedDefaults(db: SqliteDatabase, storage: StorageConfig) {
   );
 
   if (!stagingEnvironment) {
+    const environmentValues: SeedEnvironmentValues = [
+      projectId,
+      "staging",
+      "Staging",
+      "Default staging environment for Learn.",
+      "learn-staging",
+      "docker/compose/docker-compose.yml",
+        "staging",
+        null,
+        storage.generatedConfigDir,
+        defaultHealthUrl,
+        storage.deploymentLogsDir,
+        null,
+        null
+    ];
+
     executeStatement(
       db,
       `
@@ -448,21 +485,7 @@ function seedDefaults(db: SqliteDatabase, storage: StorageConfig) {
           active_deployment_id
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
-      [
-        projectId,
-        "staging",
-        "Staging",
-        "Default staging environment for Learn.",
-        "learn-staging",
-        "docker/compose/docker-compose.yml",
-        "staging",
-        null,
-        storage.generatedConfigDir,
-        "http://127.0.0.1:3000/api/health",
-        storage.deploymentLogsDir,
-        null,
-        null
-      ]
+      environmentValues
     );
   }
 }
@@ -473,14 +496,14 @@ export function openStagingDatabase(dbPath: string): SqliteDatabase {
   return db;
 }
 
-export async function initializePersistence(storage: StorageConfig) {
-  await ensureStorage(storage);
+export async function initializePersistence(config: PersistenceConfig) {
+  await ensureStorage(config.storage);
 
-  const db = openStagingDatabase(storage.dbPath);
+  const db = openStagingDatabase(config.storage.dbPath);
 
   try {
     runMigrations(db);
-    seedDefaults(db, storage);
+    seedDefaults(db, config.storage, config.defaultHealthUrl);
   } finally {
     db.close();
   }
