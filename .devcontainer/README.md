@@ -12,7 +12,9 @@ The devcontainer runs via Docker Compose with a single service:
 The custom image extends the standard Node devcontainer base and preinstalls
 Playwright Chromium plus its Linux system dependencies, so local browser tests
 do not require a separate manual `npx playwright install` or
-`npx playwright install-deps`.
+`npx playwright install-deps`. The browser cache is stored in
+`/ms-playwright` and owned by the `node` user so the VS Code remote user can
+launch the installed browser binaries.
 
 ## Why the build was failing
 
