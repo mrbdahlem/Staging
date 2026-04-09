@@ -7,11 +7,15 @@ on:
       - main
       - mvp-bootstrap
 
+env:
+  NODE_VERSION: 22
+  PLAYWRIGHT_VERSION: v1.59.1
+
 jobs:
   verify:
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.59.1-jammy
+      image: mcr.microsoft.com/playwright:${{ env.PLAYWRIGHT_VERSION }}-jammy
 
     steps:
       - name: Check out repository
@@ -27,6 +31,18 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Verify container toolchain
+        run: |
+          node --version
+          npm --version
+          case "$(node --version)" in
+            v${NODE_VERSION}.*) ;;
+            *)
+              echo "Expected Node ${NODE_VERSION}.x from the Playwright container image."
+              exit 1
+              ;;
+          esac
 
       - name: Run lint, typecheck, and unit tests
         run: npm test

@@ -37,9 +37,9 @@ node --version
 npm --version
 ```
 
-4. If a `package.json` exists at the repo root, dependencies will install during
+3. If a `package.json` exists at the repo root, dependencies will install during
 `postCreateCommand`. Otherwise the setup scripts will skip install cleanly.
-5. If you change `.devcontainer/Dockerfile`, rebuild the devcontainer so the
+4. If you change `.devcontainer/Dockerfile`, rebuild the devcontainer so the
 browser dependencies are refreshed in the image.
 
 ## Common app ports
