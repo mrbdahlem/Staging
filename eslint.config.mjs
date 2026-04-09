@@ -68,6 +68,20 @@ export default tseslint.config(
     }
   },
   {
+    files: ["apps/server/**/*.test.ts", "apps/server/**/*.spec.ts"],
+    extends: [...tseslint.configs.recommendedTypeChecked],
+    languageOptions: {
+      parserOptions: {
+        project: "./apps/server/tsconfig.test.json",
+        projectService: false,
+        tsconfigRootDir: import.meta.dirname
+      },
+      globals: {
+        ...globals.node
+      }
+    }
+  },
+  {
     files: ["**/*.test.ts", "**/*.test.tsx"],
     rules: {
       "@typescript-eslint/no-unsafe-assignment": "off",

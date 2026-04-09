@@ -13,8 +13,10 @@ try {
   if (!sourceStats.isDirectory()) {
     throw new Error("Web build output path is not a directory.");
   }
-} catch {
-  throw new Error("Web build output was not found at apps/web/dist. Run `npm run build --workspace @staging/web` first.");
+} catch (error) {
+  throw new Error("Web build output was not found at apps/web/dist. Run `npm run build --workspace @staging/web` first.", {
+    cause: error
+  });
 }
 
 await rm(targetDir, { force: true, recursive: true });
