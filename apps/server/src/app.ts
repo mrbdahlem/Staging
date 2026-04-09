@@ -27,10 +27,15 @@ export function createApp(publicDir: string) {
     });
   }
 
-  app.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
+  app.use((error: unknown, _request: express.Request, response: express.Response, next: express.NextFunction) => {
     log("error", "Unhandled request error", {
       error: error instanceof Error ? error.message : "unknown"
     });
+
+    if (response.headersSent) {
+      next(error);
+      return;
+    }
 
     response.status(500).json({
       error: "Internal Server Error"
