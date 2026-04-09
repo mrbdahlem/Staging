@@ -41,9 +41,10 @@ describe("server startup", () => {
   });
 
   it("handles server error events from app.listen", () => {
+    type StartupServer = Parameters<typeof attachStartupServerErrorHandler>[0];
     const server = new EventEmitter();
 
-    attachStartupServerErrorHandler(server as never);
+    attachStartupServerErrorHandler(server as unknown as StartupServer);
     server.emit("error", new Error("EADDRINUSE"));
 
     expect(log).toHaveBeenCalledWith("error", "Server failed to start", {
