@@ -9,5 +9,6 @@
 - CI runs inside a Playwright container image so browser binaries and Linux dependencies do not need to be downloaded during every workflow run.
 - The pinned Playwright CI image `mcr.microsoft.com/playwright:v1.59.1-jammy` currently provides Node 24.x, so workflow verification should match that image rather than assuming Node 22.
 - The devcontainer should install Playwright OS dependencies as `root` but install browser binaries into a shared `PLAYWRIGHT_BROWSERS_PATH` owned by `node`, otherwise the remote user can miss the cached executables.
+- Server persistence tests should use temp storage roots and temp SQLite files so schema/bootstrap coverage never touches the real `storage/` tree.
 - Server tests should stay in-process in this sandbox and avoid real port binding; the current bootstrap covers route handlers directly with Vitest.
 - In this agent sandbox, local port binding is not reliable enough to treat Playwright as a hard gate; keep `npm test` green here and rerun `npm run test:e2e` in a canonical environment when browser-level verification matters.

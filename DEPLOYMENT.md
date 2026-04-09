@@ -8,6 +8,18 @@
 4. Or start the frontend with `npm run dev:web`.
 
 The root dev scripts automatically build `@staging/shared` before launching the backend or frontend.
+The backend also bootstraps local storage and the SQLite schema on startup.
+
+Default storage paths:
+
+- `storage/db/staging.sqlite`
+- `storage/artifacts/`
+- `storage/current/`
+- `storage/config/generated/`
+- `storage/logs/deployments/`
+- `storage/imports/`
+
+All of those can be overridden with `STAGING_*` storage environment variables when you need isolated paths for tests or alternate runtimes.
 
 ## Production-style local run
 
