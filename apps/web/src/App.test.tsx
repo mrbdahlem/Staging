@@ -3,6 +3,11 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { App } from "./App.js";
 
 describe("App", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
   it("renders the shell and shows health data from the server", async () => {
     vi.stubGlobal(
       "fetch",

@@ -10,7 +10,7 @@ The repository is now bootstrapped as a TypeScript monorepo with:
 - `apps/web`: React/Vite/Tailwind CSS v4 frontend shell
 - `packages/shared`: shared types and helpers
 
-This is the Phase 1 baseline for the MVP plan in [.agent/plans/mvp.md](/workspaces/Staging/.agent/plans/mvp.md).
+This is the Phase 1 baseline for the MVP plan in [.agent/plans/mvp.md](.agent/plans/mvp.md).
 
 ## Quick start
 

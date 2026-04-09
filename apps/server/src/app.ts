@@ -4,7 +4,7 @@ import { join } from "node:path";
 import express from "express";
 
 import { log } from "./logger.js";
-import { handleHealthRequest } from "./routes/health.js";
+import { handleApiNotFoundRequest, handleHealthRequest } from "./routes/health.js";
 
 export function createApp(publicDir: string) {
   const app = express();
@@ -16,6 +16,8 @@ export function createApp(publicDir: string) {
 
   if (existsSync(publicDir)) {
     app.use(express.static(publicDir));
+    app.get("/api/{*path}", handleApiNotFoundRequest);
+
     app.get("/{*path}", (_request, response) => {
       response.sendFile(join(publicDir, "index.html"));
     });

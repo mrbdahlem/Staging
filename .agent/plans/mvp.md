@@ -661,7 +661,8 @@ These should be decided as implementation details rather than delaying the proje
   - [x] Set up Vite for frontend
   - [x] Set up Express backend
   - [ ] Prepare testing systems and scripts
-    - [x] Set up backend API testing (`vitest`, `supertest`, test SQLite db/filesystem)
+    - [x] Set up backend handler/service testing (`vitest`, test SQLite db/filesystem)
+    - [ ] Add backend API integration testing with `supertest`
     - [x] Set up frontend component testing (`vitest`, Testing Library)
     - [x] Set up e2e testing with Playwright
     - [ ] Define test environment config and isolated Staging storage paths
