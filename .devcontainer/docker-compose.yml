@@ -3,4 +3,9 @@ services:
     image: mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm
     volumes:
       - ..:/workspaces/Staging:cached
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+      - seccomp:unconfined
     command: sleep infinity

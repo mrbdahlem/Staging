@@ -1,21 +1,19 @@
-Absolutely. Here is a working spec and implementation plan for **Staging** as we have defined it so far.
-
 # Staging
 
 ## Technical Spec and Implementation Plan
 
-**Version:** v1
-**Purpose:** Manage CI-built Learn jar artifacts and support manual deployment and rollback to a Dockerized staging environment on a Raspberry Pi 5.
+**Version:** v1.0 (Learn-first, multi-project-ready)
+**Purpose:** Manage CI-built application artifacts and support manual deployment and rollback to Dockerized staging environments on a minimal system e.g. a Raspberry Pi 5.
 
 ---
 
 # 1. Overview
 
-Staging is a lightweight deployment dashboard and orchestration service for Learn. It receives metadata about successful CI builds, downloads jar artifacts, stores artifact and deployment metadata in SQLite, and allows a user to manually deploy or roll back a selected artifact to a Dockerized Learn staging instance.
+Staging is a lightweight deployment dashboard and orchestration service for multiple projects. It receives metadata about successful CI builds, downloads artifacts, stores artifact and deployment metadata in SQLite, and allows a user to manually deploy or roll back a selected artifact to a Dockerized staging runtime.
 
 Staging is not a CI system, not a full auth platform, and not yet a DB sanitization tool. It is intentionally focused on artifact management, deployment control, runtime visibility, and rollback.
 
-The initial deployment target is a staging Learn instance running on a Pi 5. The same architecture should allow promotion to production later, but production support is out of scope for v1.
+The initial seeded project is Learn running on a Pi 5. The architecture should support additional projects without core refactors. Promotion to production is still out of scope for v1.
 
 ---
 
@@ -23,17 +21,17 @@ The initial deployment target is a staging Learn instance running on a Pi 5. The
 
 ## 2.1 Primary goals
 
-* Receive notification when a Learn jar has been successfully built and tested in GitHub Actions
-* Download and store the jar artifact locally
+* Receive notification when a project artifact has been successfully built and tested in GitHub Actions
+* Download and store artifacts locally
 * Maintain artifact metadata in a local SQLite database
 * Present a web UI for viewing and managing available artifacts
-* Allow a user to manually deploy a selected artifact to the staging Learn container
+* Allow a user to manually deploy a selected artifact to a selected project environment
 * Allow a user to manually roll back to a previously successful deployment
 * Store deployment history, including artifact, config snapshot, status, and log reference
 * Serve the frontend as static assets from the backend
 * Support LAN access
-* Keep Learn running inside a Docker container
-* Keep runtime state outside the Learn container
+* Keep project runtimes running inside Docker containers
+* Keep runtime state outside application containers
 * Use a read-only runtime container model where practical
 
 ## 2.2 Non-goals for v1
@@ -42,7 +40,7 @@ The initial deployment target is a staging Learn instance running on a Pi 5. The
 * Automatic database sanitization
 * Full identity management or auth platform
 * Zero-downtime cutover
-* Rebuilding Docker images for each jar
+* Rebuilding Docker images for each artifact
 * Full secret-management platform
 * Blue/green or canary deployments
 
@@ -54,9 +52,9 @@ Staging is a monorepo containing a React frontend and a Node/Express backend, bo
 
 The frontend is built with Vite and bundled to static files. The backend serves those files and exposes a JSON API.
 
-Artifact and deployment metadata are stored in SQLite. Jar files, generated environment snapshots, and deployment logs are stored on the host filesystem.
+Artifact and deployment metadata are stored in SQLite. Artifact files, generated environment snapshots, and deployment logs are stored on the host filesystem.
 
-The Learn runtime runs as a separate Docker container that mounts the currently selected jar and generated env file from the host. The Learn container is treated as disposable. Persistent state lives in MariaDB and host storage, not in the container.
+Each project runtime runs as a separate Docker container (or container set) that mounts the currently selected artifact and generated env file from the host. Runtime containers are treated as disposable. Persistent state lives in external services and host storage, not in application containers.
 
 ---
 
@@ -81,12 +79,12 @@ The frontend is a React single-page application. It is prebuilt and served by th
 The backend is a Node/Express app written in TypeScript. It is responsible for:
 
 * validating and processing GitHub build notifications
-* downloading jar artifacts from GitHub
+* downloading artifacts from GitHub
 * managing artifact metadata
 * resolving config
 * generating deployment env snapshots
-* updating the active jar symlink
-* restarting the Learn container
+* updating the active artifact pointer
+* restarting the target project runtime
 * running health checks
 * storing deployment records
 * capturing deployment log references
@@ -94,29 +92,31 @@ The backend is a Node/Express app written in TypeScript. It is responsible for:
 
 ## 4.3 SQLite database
 
-SQLite stores metadata only. It does not store the Learn application data. That remains in MariaDB. SQLite is used for:
+SQLite stores metadata only. It does not store application runtime data. SQLite is used for:
+
+* projects
 
 * artifacts
 * tags
 * environments
 * environment variables
-* artifact overrides
+* artifact_env_overrides
 * deployments
 
 ## 4.4 Host storage
 
 Host storage contains:
 
-* downloaded jar artifacts
-* active symlink
+* downloaded artifacts
+* active artifact pointers
 * generated env snapshots
 * deployment logs
 * SQLite database
 * optionally imported DB backups for future manual restore workflows
 
-## 4.5 Learn runtime container
+## 4.5 Runtime containers
 
-Learn runs in a separate Docker container with a fixed runtime image. The current jar and generated env file are mounted from the host. The container is restarted when a new artifact is deployed or when a rollback occurs.
+Each project runs in a separate Docker container with a project runtime profile. For Learn MVP, this is a fixed Java runtime image. The current artifact and generated env file are mounted from the host. The container is restarted when a new artifact is deployed or when a rollback occurs.
 
 The container should be read-only where practical. If writable temp storage is required, it should use a tmpfs or explicitly mounted writable path.
 
@@ -124,9 +124,9 @@ The container should be read-only where practical. If writable temp storage is r
 
 # 5. Runtime model
 
-The Learn container is disposable. The authoritative runtime bundle for a deployment is the combination of:
+The runtime container is disposable. The authoritative runtime bundle for a deployment is the combination of:
 
-* artifact jar
+* artifact
 * generated env snapshot
 * deployment record
 * deployment log file or log reference
@@ -146,8 +146,8 @@ v1 uses a simple restart deployment model:
 1. user selects an artifact
 2. backend resolves config
 3. backend generates an env snapshot file
-4. backend atomically updates the current jar symlink
-5. backend restarts the Learn container
+4. backend atomically updates the current artifact pointer
+5. backend restarts the target project runtime
 6. backend performs a health check
 7. backend records deployment success or failure
 8. backend captures or references deployment logs
@@ -200,8 +200,9 @@ staging/
   docker/
     compose/
       docker-compose.yml
-    learn/
-      Dockerfile.runtime
+    runtimes/
+      learn/
+        Dockerfile.runtime
   storage/
     artifacts/
     current/
@@ -223,10 +224,16 @@ Suggested host filesystem layout:
 ```text
 /opt/staging/
   artifacts/
-    learn-main-2026-04-08-build184-abc123.jar
-    learn-main-2026-04-08-build185-def456.jar
+    learn/
+      learn-main-2026-04-08-build184-abc123.jar
+      learn-main-2026-04-08-build185-def456.jar
+    another-app/
+      another-app-main-2026-04-08-build17-abc999.tar.gz
   current/
-    learn.jar -> ../artifacts/learn-main-2026-04-08-build184-abc123.jar
+    learn/
+      active-artifact -> ../../artifacts/learn/learn-main-2026-04-08-build184-abc123.jar
+    another-app/
+      active-artifact -> ../../artifacts/another-app/another-app-main-2026-04-08-build17-abc999.tar.gz
   config/
     generated/
       deployment-0001.env
@@ -245,13 +252,31 @@ Suggested host filesystem layout:
 
 # 9. Data model
 
-## 9.1 Artifacts
+## 9.1 Projects
 
-Represents a known jar file downloaded from CI.
+Represents a deployable application managed by Staging.
 
 Fields:
 
 * `id`
+* `key` (for example, `learn`)
+* `name`
+* `description`
+* `runtime_type` (for example, `java-jar`, `docker-image`) — describes the artifact/runtime family
+* `artifact_kind` (for example, `jar`, `tarball`, `image-ref`)
+* `deploy_driver` (for example, `compose-mounted-artifact`) — describes how Staging deploys this project; distinct from `runtime_type` so two projects can share a runtime family but differ in deployment mechanics
+* `active`
+* `created_at`
+* `updated_at`
+
+## 9.2 Artifacts
+
+Represents a known artifact downloaded from CI.
+
+Fields:
+
+* `id`
+* `project_id`
 * `source`
 * `repo`
 * `workflow_run_id`
@@ -269,7 +294,7 @@ Fields:
 * `status`
 * `notes`
 
-## 9.2 Artifact tags
+## 9.3 Artifact tags
 
 Stores one or more tags for an artifact.
 
@@ -279,26 +304,28 @@ Fields:
 * `artifact_id`
 * `tag`
 
-## 9.3 Environments
+## 9.4 Environments
 
 Represents a deployment target. v1 will likely have only one, `staging`, but this should still be modeled explicitly.
 
 Fields:
 
 * `id`
+* `project_id`
+* `key` (for example, `staging`) — short stable identifier; combined with `project_id` must be unique; used in routing and config lookup
 * `name`
 * `description`
 * `container_name`
 * `docker_compose_file`
 * `docker_compose_project`
-* `deploy_symlink_path`
+* `deploy_pointer_path` — optional override; when null, the path is derived from the standard convention `/opt/staging/current/<project-key>/<environment-key>/active-artifact`; store explicitly only when deviating from the convention
 * `generated_env_dir`
 * `health_url`
 * `logs_path`
 * `active_artifact_id`
 * `active_deployment_id`
 
-## 9.4 Environment variables
+## 9.5 Environment variables
 
 Default variables for an environment.
 
@@ -311,9 +338,9 @@ Fields:
 * `is_secret`
 * `updated_at`
 
-## 9.5 Artifact variable overrides
+## 9.6 Artifact env overrides (`artifact_env_overrides`)
 
-Optional per-artifact overrides to environment defaults.
+Optional per-artifact overrides to environment variable defaults.
 
 Fields:
 
@@ -324,13 +351,14 @@ Fields:
 * `is_secret`
 * `updated_at`
 
-## 9.6 Deployments
+## 9.7 Deployments
 
 A durable record of a deployment or rollback attempt.
 
 Fields:
 
 * `id`
+* `project_id`
 * `environment_id`
 * `artifact_id`
 * `type` (`deploy`, `rollback`)
@@ -351,6 +379,14 @@ Fields:
 * `health_status`
 * `health_message`
 * `notes`
+
+## 9.8 Schema constraints
+
+Uniqueness rules to prevent duplicate ingest and config ambiguity:
+
+* `projects.key` — unique
+* `environments (project_id, key)` — unique per project
+* `artifacts (project_id, workflow_run_id, artifact_name)` — unique per project per workflow run
 
 ---
 
@@ -378,7 +414,7 @@ Secrets may be stored in SQLite for v1, but should be masked in the UI after cre
 
 GitHub Actions is the source of successful build notifications. After a successful build and test job, the workflow will:
 
-* upload the jar artifact
+* upload the project artifact
 * send a signed POST request to Staging with build metadata
 
 ## 11.2 Authentication
@@ -391,9 +427,11 @@ The backend validates the signature before processing the request.
 
 ```json
 {
+  "projectKey": "learn",
   "repo": "owner/learn",
   "workflowRunId": 123456789,
   "artifactName": "learn-jar",
+  "artifactKind": "jar",
   "branch": "main",
   "commitSha": "abc123def456",
   "commitMessage": "Fix grade sync and cleanup job",
@@ -434,9 +472,9 @@ These should be stored in the deployment record and surfaced in the UI.
 3. resolve config from environment defaults and artifact overrides
 4. write generated env snapshot file
 5. compute and store env hash
-6. atomically update current jar symlink
+6. atomically update active artifact pointer for selected project/environment
 7. transition to `restarting`
-8. restart Learn container
+8. restart selected project runtime
 9. capture container id
 10. transition to `health_checking`
 11. poll health endpoint up to configured timeout
@@ -448,8 +486,8 @@ These should be stored in the deployment record and surfaced in the UI.
 1. user selects previous successful deployment
 2. create new deployment record with type `rollback`
 3. reuse selected deployment’s artifact and env snapshot
-4. update symlink
-5. restart container
+4. update active artifact pointer
+5. restart project runtime
 6. health check
 7. capture logs
 8. update deployment status
@@ -458,7 +496,7 @@ These should be stored in the deployment record and surfaced in the UI.
 
 # 13. Logging
 
-Learn logs to stdout. Docker is the live source of runtime logs.
+Runtime logs go to stdout/stderr. Docker is the live source of runtime logs.
 
 For deployment history, Staging should create a per-deployment log file path and capture relevant logs for that deployment. The log file path is stored in the deployment record.
 
@@ -470,24 +508,24 @@ For v1, startup and deployment-time logs are sufficient. Full live log browsing 
 
 # 14. Docker strategy
 
-## 14.1 Learn runtime image
+## 14.1 Runtime profiles
 
-The Learn image should be fixed and reusable. It should include:
+Each project declares a runtime profile. For Learn MVP, the profile is fixed and reusable and includes:
 
 * Java runtime
 * startup script if needed
 * no application jar baked into the image
 
-The selected jar is mounted from the host.
+The selected artifact is mounted from the host.
 
 ## 14.2 Container configuration
 
-The Learn container should ideally use:
+A project runtime container should ideally use:
 
 * read-only root filesystem
-* mounted jar path read-only
+* mounted artifact path read-only
 * generated env snapshot file or env file mounted read-only
-* external MariaDB connection
+* external backing service connections as required by that project
 * writable tmpfs only if required
 * optional writable log mount if later needed
 
@@ -503,38 +541,44 @@ The shelling should be tightly controlled and limited to known commands for the 
 
 Suggested initial API routes:
 
+## Projects
+
+* `GET /api/projects`
+* `GET /api/projects/:projectId`
+
 ## Artifacts
 
-* `GET /api/artifacts`
-* `GET /api/artifacts/:id`
-* `POST /api/artifacts/sync`
-* `POST /api/artifacts/:id/tags`
-* `DELETE /api/artifacts/:id/tags/:tag`
-* `DELETE /api/artifacts/:id`
+* `GET /api/projects/:projectId/artifacts`
+* `GET /api/projects/:projectId/artifacts/:id`
+* `POST /api/projects/:projectId/artifacts/sync`
+* `POST /api/projects/:projectId/artifacts/:id/tags`
+* `DELETE /api/projects/:projectId/artifacts/:id/tags/:tag`
+* `DELETE /api/projects/:projectId/artifacts/:id`
 
 ## Deployments
 
-* `GET /api/deployments`
-* `GET /api/deployments/:id`
-* `POST /api/artifacts/:id/deploy`
-* `POST /api/deployments/:id/rollback`
+* `GET /api/projects/:projectId/deployments`
+* `GET /api/projects/:projectId/deployments/:id`
+* `POST /api/projects/:projectId/artifacts/:id/deploy`
+* `POST /api/projects/:projectId/deployments/:id/rollback`
 
 ## Runtime
 
-* `GET /api/runtime/status`
-* `POST /api/runtime/restart`
+* `GET /api/projects/:projectId/runtime/status`
+* `POST /api/projects/:projectId/runtime/restart`
 
 ## Config
 
-* `GET /api/environments`
-* `GET /api/environments/:id/variables`
-* `PUT /api/environments/:id/variables`
-* `GET /api/artifacts/:id/overrides`
-* `PUT /api/artifacts/:id/overrides`
+* `GET /api/projects/:projectId/environments`
+* `GET /api/projects/:projectId/environments/:id/variables`
+* `PUT /api/projects/:projectId/environments/:id/variables`
+* `GET /api/projects/:projectId/artifacts/:id/overrides`
+* `PUT /api/projects/:projectId/artifacts/:id/overrides`
 
 ## GitHub ingest
 
 * `POST /api/github/build-complete`
+* `POST /api/github/projects/:projectKey/build-complete` (optional alias)
 
 ---
 
@@ -542,7 +586,7 @@ Suggested initial API routes:
 
 ## Dashboard
 
-Shows current deployment, health, latest artifacts, and quick actions.
+Shows selected project current deployment, health, latest artifacts, and quick actions.
 
 ## Artifacts
 
@@ -554,7 +598,7 @@ Shows history of deployments and rollbacks, statuses, and log references.
 
 ## Runtime
 
-Shows current symlink target, container status, health, and runtime details.
+Shows selected project active artifact pointer, container status, health, and runtime details.
 
 ## Config
 
@@ -585,7 +629,7 @@ Secrets displayed in the UI should be masked after creation or update.
 * downtime during deploy is acceptable
 * manual button press is required for any deployment
 * the Pi 5 is resource-constrained, so side-by-side candidate containers are not required for v1
-* the Learn MariaDB remains separate from Staging’s SQLite metadata database
+* Learn MVP MariaDB remains separate from Staging’s SQLite metadata database
 * prod DB backups may be stored on the system, but restore and sanitization workflows are out of scope for v1
 
 ---
@@ -602,6 +646,8 @@ These are acknowledged but not blocking for implementation:
 * exact auth layer for LAN use
 * whether Docker logs alone are sufficient or a host-side file capture should be implemented immediately
 * whether tmpfs is needed for the read-only Learn container
+* exact runtime profiles to support after Learn (for example, image-based deploys)
+* artifact retention policy per project
 
 These should be decided as implementation details rather than delaying the project.
 
@@ -621,19 +667,21 @@ These should be decided as implementation details rather than delaying the proje
 
 - [ ] **Phase 2: SQLite schema and persistence layer**
   - [ ] Implement SQLite with chosen library or ORM
-  - [ ] Create tables for artifacts, artifact tags, environments, environment variables, artifact overrides, and deployments
-  - [ ] Seed a default `staging` environment
+  - [ ] Create tables for projects, artifacts, artifact tags, environments, environment variables, `artifact_env_overrides`, and deployments
+  - [ ] Apply uniqueness constraints: `projects.key`, `(project_id, key)` on environments, `(project_id, workflow_run_id, artifact_name)` on artifacts
+  - [ ] Seed a default `learn` project and default `staging` environment (key: `staging`) for that project
   - [ ] Deliverable: backend can create, read, and update artifact and deployment records
 
 - [ ] **Phase 3: GitHub ingest and artifact download**
   - [ ] Implement `POST /api/github/build-complete`
   - [ ] Implement HMAC signature validation
+  - [ ] Resolve target project from `projectKey` (fallback to default `learn` during MVP)
   - [ ] Implement GitHub artifact lookup/download
   - [ ] Implement local artifact storage
   - [ ] Implement checksum calculation
   - [ ] Implement metadata persistence
   - [ ] Implement manual sync endpoint
-  - [ ] Deliverable: successful GitHub build notification results in a stored jar artifact visible in the database
+  - [ ] Deliverable: successful GitHub build notification results in a stored project artifact visible in the database
 
 - [ ] **Phase 4: artifact UI**
   - [ ] Build frontend pages for dashboard, artifact list, and artifact detail panel
@@ -644,18 +692,18 @@ These should be decided as implementation details rather than delaying the proje
 
 - [ ] **Phase 5: config management**
   - [ ] Implement environment default variable storage
-  - [ ] Implement artifact override storage
+  - [ ] Implement artifact env override storage (`artifact_env_overrides`)
   - [ ] Implement config resolution service
   - [ ] Implement generated env snapshot creation
   - [ ] Implement config hash generation
-  - [ ] Build frontend UI to manage environment defaults and artifact overrides
+  - [ ] Build frontend UI to manage environment defaults and artifact env overrides
   - [ ] Deliverable: a selected artifact can produce a resolved env snapshot file
 
 - [ ] **Phase 6: deployment orchestration**
   - [ ] Implement deployment service to create deployment record
-  - [ ] Update symlink atomically
+  - [ ] Update active artifact pointer atomically
   - [ ] Shell out to `docker compose`
-  - [ ] Restart Learn container
+  - [ ] Restart selected project runtime container
   - [ ] Capture container id
   - [ ] Poll health endpoint
   - [ ] Persist final deployment status
@@ -673,7 +721,7 @@ These should be decided as implementation details rather than delaying the proje
   - [ ] Deliverable: each deployment record points to a stable deployment log file
 
 - [ ] **Phase 9: runtime status page**
-  - [ ] Implement runtime inspection page showing current artifact, current deployment, symlink target, container status, and health result
+  - [ ] Implement runtime inspection page showing selected project current artifact, current deployment, active artifact pointer, container status, and health result
   - [ ] Deliverable: runtime page gives a quick operator view of staging health and version
 
 - [ ] **Phase 10: polish and hardening**
@@ -696,13 +744,14 @@ The system is considered v1-ready when it can do the following:
 
 - [ ] serve a React SPA from the backend
 - [ ] ingest signed GitHub build notifications
-- [ ] download jar artifacts from GitHub
+- [ ] route build notifications to a project (default `learn` during MVP)
+- [ ] download project artifacts from GitHub
 - [ ] store artifact metadata in SQLite
 - [ ] show artifacts in the UI
 - [ ] manage environment defaults
 - [ ] manage artifact-specific overrides
 - [ ] generate immutable env snapshots per deployment
-- [ ] deploy a selected artifact to a Dockerized Learn staging container
+- [ ] deploy a selected artifact to a Dockerized staging runtime for the selected project
 - [ ] health-check the deployment
 - [ ] store deployment history
 - [ ] roll back to a previous successful deployment using artifact plus config snapshot
@@ -715,7 +764,7 @@ The system is considered v1-ready when it can do the following:
 If you want the smoothest start, build in this exact order:
 
 - [ ] monorepo skeleton
-- [ ] SQLite schema
+- [ ] SQLite schema (including project model)
 - [ ] artifact ingest endpoint
 - [ ] manual sync
 - [ ] artifact list UI
