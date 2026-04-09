@@ -1,7 +1,6 @@
 services:
   staging:
     image: node:22-bookworm
-    user: node
     working_dir: /workspace
     command: >
       bash -lc "npm ci && npm run build && npm run start"
