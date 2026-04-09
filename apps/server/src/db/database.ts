@@ -457,13 +457,13 @@ function seedDefaults(db: SqliteDatabase, storage: StorageConfig, defaultHealthU
       "Default staging environment for Learn.",
       "learn-staging",
       "docker/compose/docker-compose.yml",
-        "staging",
-        null,
-        storage.generatedConfigDir,
-        defaultHealthUrl,
-        storage.deploymentLogsDir,
-        null,
-        null
+      "staging",
+      null,
+      storage.generatedConfigDir,
+      defaultHealthUrl,
+      storage.deploymentLogsDir,
+      null,
+      null
     ];
 
     executeStatement(
@@ -487,7 +487,15 @@ function seedDefaults(db: SqliteDatabase, storage: StorageConfig, defaultHealthU
       `,
       environmentValues
     );
+
+    return;
   }
+
+  executeStatement(
+    db,
+    "UPDATE environments SET health_url = ? WHERE id = ?",
+    [defaultHealthUrl, stagingEnvironment.id]
+  );
 }
 
 export function openStagingDatabase(dbPath: string): SqliteDatabase {

@@ -193,4 +193,36 @@ describe("database bootstrap", () => {
       await rm(storage.rootDir, { force: true, recursive: true });
     }
   });
+
+  it("updates the seeded health URL when the configured default changes", async () => {
+    const storage = await createTestStorage();
+
+    try {
+      await initializePersistence({
+        defaultHealthUrl: "/api/health",
+        storage
+      });
+
+      await initializePersistence({
+        defaultHealthUrl: "/healthz",
+        storage
+      });
+
+      const db = openStagingDatabase(storage.dbPath);
+
+      try {
+        const [environment] = listEnvironments(db);
+
+        expect(environment).toEqual(
+          expect.objectContaining({
+            healthUrl: "/healthz"
+          })
+        );
+      } finally {
+        db.close();
+      }
+    } finally {
+      await rm(storage.rootDir, { force: true, recursive: true });
+    }
+  });
 });
