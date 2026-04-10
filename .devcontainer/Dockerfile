@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/javascript-node:1-24-trixie
+FROM mcr.microsoft.com/devcontainers/javascript-node:24-trixie
 
 ARG PLAYWRIGHT_VERSION=1.59.1
 
