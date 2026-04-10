@@ -461,97 +461,81 @@ function runMigrations(db: SqliteDatabase) {
 
 function seedDefaults(db: SqliteDatabase, storage: StorageConfig, defaultHealthUrl: string) {
   const now = new Date().toISOString();
-  const learnProject = getStatement<{ id: number }>(db, "SELECT id FROM projects WHERE key = ?", ["learn"]);
-
-  const projectId =
-    learnProject?.id ??
-    Number(
-      executeStatement(
-        db,
-        `
-          INSERT INTO projects (
-            key,
-            name,
-            description,
-            runtime_type,
-            artifact_kind,
-            deploy_driver,
-            active,
-            created_at,
-            updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `,
-        [
-          "learn",
-          "Learn",
-          "Seeded Learn project for the Staging MVP.",
-          "java-jar",
-          "jar",
-          "compose-mounted-artifact",
-          1,
-          now,
-          now
-        ]
-      ).lastInsertRowid
-    );
-
-  const stagingEnvironment = getStatement<{ id: number }>(
+  executeStatement(
     db,
-    "SELECT id FROM environments WHERE project_id = ? AND key = ?",
-    [projectId, "staging"]
+    `
+      INSERT INTO projects (
+        key,
+        name,
+        description,
+        runtime_type,
+        artifact_kind,
+        deploy_driver,
+        active,
+        created_at,
+        updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(key) DO NOTHING
+    `,
+    [
+      "learn",
+      "Learn",
+      "Seeded Learn project for the Staging MVP.",
+      "java-jar",
+      "jar",
+      "compose-mounted-artifact",
+      1,
+      now,
+      now
+    ]
   );
 
-  if (!stagingEnvironment) {
-    const environmentValues: SeedEnvironmentValues = {
-      projectId,
-      key: "staging",
-      name: "Staging",
-      description: "Default staging environment for Learn.",
-      containerName: "learn-staging",
-      dockerComposeFile: "docker/compose/docker-compose.yml",
-      dockerComposeProject: "staging",
-      deployPointerPath: null,
-      generatedEnvDir: storage.generatedConfigDir,
-      healthUrl: defaultHealthUrl,
-      logsPath: storage.deploymentLogsDir,
-      activeArtifactId: null,
-      activeDeploymentId: null
-    };
+  const learnProject = getStatement<{ id: number }>(db, "SELECT id FROM projects WHERE key = ?", ["learn"]);
 
-    executeStatement(
-      db,
-      `
-        INSERT INTO environments (
-          project_id,
-          key,
-          name,
-          description,
-          container_name,
-          docker_compose_file,
-          docker_compose_project,
-          deploy_pointer_path,
-          generated_env_dir,
-          health_url,
-          logs_path,
-          active_artifact_id,
-          active_deployment_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `,
-      seedEnvironmentValuesToSqliteValues(environmentValues)
-    );
-
-    return;
+  if (!learnProject) {
+    throw new Error("Failed to seed or load default 'learn' project.");
   }
+
+  const environmentValues: SeedEnvironmentValues = {
+    projectId: learnProject.id,
+    key: "staging",
+    name: "Staging",
+    description: "Default staging environment for Learn.",
+    containerName: "learn-staging",
+    dockerComposeFile: "docker/compose/docker-compose.yml",
+    dockerComposeProject: "staging",
+    deployPointerPath: null,
+    generatedEnvDir: storage.generatedConfigDir,
+    healthUrl: defaultHealthUrl,
+    logsPath: storage.deploymentLogsDir,
+    activeArtifactId: null,
+    activeDeploymentId: null
+  };
 
   executeStatement(
     db,
-    "UPDATE environments SET generated_env_dir = ?, health_url = ?, logs_path = ? WHERE id = ?",
-    [
-      storage.generatedConfigDir,
-      defaultHealthUrl,
-      storage.deploymentLogsDir,
-      stagingEnvironment.id
-    ]
+    `
+      INSERT INTO environments (
+        project_id,
+        key,
+        name,
+        description,
+        container_name,
+        docker_compose_file,
+        docker_compose_project,
+        deploy_pointer_path,
+        generated_env_dir,
+        health_url,
+        logs_path,
+        active_artifact_id,
+        active_deployment_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(project_id, key) DO UPDATE SET
+        generated_env_dir = excluded.generated_env_dir,
+        health_url = excluded.health_url,
+        logs_path = excluded.logs_path
+    `,
+    seedEnvironmentValuesToSqliteValues(environmentValues)
   );
 }
 
