@@ -433,18 +433,21 @@ function runMigrations(db: SqliteDatabase) {
     );
   `);
 
-  const applied = new Set(
-    runStatement<{ id: string }>(db, "SELECT id FROM schema_migrations").map((row) => row.id)
-  );
-
   for (const migration of migrations) {
-    if (applied.has(migration.id)) {
-      continue;
-    }
-
     db.exec("BEGIN IMMEDIATE");
 
     try {
+      const appliedMigration = getStatement<{ id: string }>(
+        db,
+        "SELECT id FROM schema_migrations WHERE id = ?",
+        [migration.id]
+      );
+
+      if (appliedMigration) {
+        db.exec("COMMIT");
+        continue;
+      }
+
       db.exec(migration.sql);
       executeStatement(
         db,
