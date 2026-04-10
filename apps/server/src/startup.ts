@@ -1,0 +1,30 @@
+import type { Server } from "node:http";
+
+import { log } from "./logger.js";
+
+export function formatStartupError(error: unknown) {
+  return error instanceof Error
+    ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      }
+    : String(error);
+}
+
+export function logStartupFailure(error: unknown) {
+  log("error", "Server failed to start", {
+    error: formatStartupError(error)
+  });
+}
+
+export function terminateStartupProcess(code = 1): never {
+  process.exit(code);
+}
+
+export function attachStartupServerErrorHandler(server: Server) {
+  server.on("error", (error) => {
+    logStartupFailure(error);
+    terminateStartupProcess();
+  });
+}

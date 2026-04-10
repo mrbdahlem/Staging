@@ -681,12 +681,12 @@ These should be decided as implementation details rather than delaying the proje
   - [x] Add Docker Compose for local/dev deployment
   - [x] Deliverable: backend serves the frontend SPA and a basic health endpoint
 
-- [ ] **Phase 2: SQLite schema and persistence layer**
-  - [ ] Implement SQLite with chosen library or ORM
-  - [ ] Create tables for projects, artifacts, artifact tags, environments, environment variables, `artifact_env_overrides`, and deployments
-  - [ ] Apply uniqueness constraints: `projects.key`, `(project_id, key)` on environments, `(project_id, workflow_run_id, artifact_name)` on artifacts
-  - [ ] Seed a default `learn` project and default `staging` environment (key: `staging`) for that project
-  - [ ] Deliverable: backend can create, read, and update artifact and deployment records
+- [x] **Phase 2: SQLite schema and persistence layer**
+  - [x] Implement SQLite with chosen library or ORM
+  - [x] Create tables for projects, artifacts, artifact tags, environments, environment variables, `artifact_env_overrides`, and deployments
+  - [x] Apply uniqueness constraints: `projects.key`, `(project_id, key)` on environments, `(project_id, workflow_run_id, artifact_name)` on artifacts
+  - [x] Seed a default `learn` project and default `staging` environment (key: `staging`) for that project
+  - [x] Deliverable: backend can create, read, and update artifact and deployment records
 
 - [ ] **Phase 3: GitHub ingest and artifact download**
   - [ ] Implement `POST /api/github/build-complete`
