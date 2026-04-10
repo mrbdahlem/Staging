@@ -12,3 +12,5 @@
 - Server persistence tests should use temp storage roots and temp SQLite files so schema/bootstrap coverage never touches the real `storage/` tree.
 - Server tests should stay in-process in this sandbox and avoid real port binding; the current bootstrap covers route handlers directly with Vitest.
 - In this agent sandbox, local port binding is not reliable enough to treat Playwright as a hard gate; keep `npm test` green here and rerun `npm run test:e2e` in a canonical environment when browser-level verification matters.
+- Tests that assert filesystem or repo-relative paths should derive their expected base directory the same way production code does, not from `process.cwd()`, so they remain stable across root-level and workspace-level test runs.
+- Test callbacks still need to satisfy the strict typed ESLint rules. For throw assertions, prefer block-bodied callbacks so helper return values do not trigger `no-unsafe-return` or related typed-lint failures.
